@@ -2,5 +2,4 @@ fastapi~=0.115.5
 httpx
 pre-commit
 
-pydantic~=2.10.2
 pytest
