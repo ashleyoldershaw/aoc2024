@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from day_2.endpoints import check_safety_with_leveller
@@ -10,9 +12,11 @@ day = 2
 
 
 class TestDay2:
-    example_input = read_file("example_input.txt")
+    example_input = read_file(
+        Path(__file__).parent.joinpath("example_input.txt").absolute()
+    )
 
-    test_input = read_file("test_input.txt")
+    test_input = read_file(Path(__file__).parent.joinpath("test_input.txt").absolute())
 
     def test_task_1_example(self):
         expected_output = 2
