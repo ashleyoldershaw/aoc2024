@@ -44,7 +44,6 @@ async def task_1(task_input: TaskInput):
 
 @day_3_routes.post("/2")
 async def task_2(task_input: TaskInput):
-    print(slice_out_ignored_sequences(task_input.data))
     total = process_mul_strings(slice_out_ignored_sequences(task_input.data))
 
     return {"answer": total}
