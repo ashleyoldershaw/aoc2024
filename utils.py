@@ -9,4 +9,4 @@ def read_file(file_name: Path):
     :return file contents:
     """
     with open(str(file_name), "r") as f:
-        return f.read()
+        return f.read().strip()

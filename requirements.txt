@@ -1,5 +1,6 @@
 fastapi~=0.115.5
 httpx
+numpy
 pre-commit
 
 pytest
