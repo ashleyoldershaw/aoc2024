@@ -39,7 +39,7 @@ class TestDay6:
         assert response.json() == {"answer": expected_output}
 
     def test_task_2_test(self):
-        expected_output = -1  # don't have the answer yet
+        expected_output = 1946
 
         response = client.post(f"/{day}/2", json={"data": self.test_input})
         assert response.status_code == 200

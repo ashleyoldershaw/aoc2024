@@ -1,5 +1,7 @@
 from collections import defaultdict
+from copy import deepcopy
 from enum import Enum
+from typing import Tuple
 
 from fastapi import APIRouter
 
@@ -169,100 +171,76 @@ def rotate_guard(direction):
         return Direction.NORTH
 
 
-def find_obstacle_if_exists(
-    initial_guard_location,
-    prev_obstacle_cols,
-    prev_obstacle_rows,
-    total_cols,
-    total_rows,
-    start_direction,
-):
-    # basically keep going until either:
-    # - we leave the map - no loop
-    # - we hit something we've hit before - loop!
+Coordinates = Tuple[int, int]
 
-    direction = start_direction
-    obstacles_hit = set()
-    new_obstacle_coords = (
-        initial_guard_location[0] + vertical_offset[direction],
-        initial_guard_location[1] + horizontal_offset[direction],
+
+def next_position(guard_position: Coordinates, direction: Direction) -> Coordinates:
+    """
+    Get the location of the guard's next step if she were to go forward
+    :param guard_position: current position of the guard
+    :param direction: the direction the guard is facing
+    :return: the next step in the guard's path
+    """
+    return (
+        guard_position[0] + vertical_offset[direction],
+        guard_position[1] + horizontal_offset[direction],
     )
 
-    new_obstacle_columns = defaultdict(set)
-    new_obstacle_rows = defaultdict(set)
-    for key, value in prev_obstacle_cols.items():
-        new_obstacle_columns[key] = value.copy()
-    for key, value in prev_obstacle_rows.items():
-        new_obstacle_rows[key] = value.copy()
 
-    new_obstacle_rows[new_obstacle_coords[0]].add(new_obstacle_coords[1])
-    new_obstacle_columns[new_obstacle_coords[1]].add(new_obstacle_coords[0])
+def out_of_bounds(coordinate: Coordinates, total_cols: int, total_rows: int) -> bool:
+    """
+    Check if a coordinate is outside the grid - this means we'll be leaving the area
+    :param coordinate: the coordinate to check
+    :param total_cols: the width of the grid
+    :param total_rows: the height of the grid
+    :return: if we're out of bounds or not
+    """
+    if coordinate[0] < 0 or coordinate[0] >= total_rows:
+        return True
+    elif coordinate[1] < 0 or coordinate[1] >= total_cols:
+        return True
+    else:
+        return False
 
-    guard_location = initial_guard_location
+
+def check_for_loop(
+    guard_location: Coordinates,
+    direction: Direction,
+    obstacle_rows: dict[int, set[int]],
+    total_cols: int,
+    total_rows: int,
+) -> bool:
+    """
+
+    :param guard_location: initial location of guard in this area
+    :param direction: the direction the guard is facing
+    :param obstacle_rows: a dictionary of obstacles
+    :param total_cols: edge of the grid horizontally
+    :param total_rows: edge of the grid vertically
+    :return: whether or not there is a loop
+    """
+
+    next_step = next_position(guard_location, direction)
+    obstacle_rows[next_step[0]].add(next_step[1])
+    hit_obstacles = set()
 
     # this better not get stuck in a loop!
     while True:
-        if direction == Direction.NORTH:
-            obstacle_location = find_north_obstacle(
-                guard_location, new_obstacle_columns
-            )
-            end_spot = obstacle_location - vertical_offset[direction]
+        next_step = next_position(guard_location, direction)
 
-            if obstacle_location == -1:
-                return False
+        if out_of_bounds(next_step, total_cols, total_rows):
+            return False
 
-            check_obstacle = (obstacle_location, guard_location[1], direction)
-            if check_obstacle in obstacles_hit:
-                return check_obstacle[:2]
-            obstacles_hit.add(check_obstacle)
+        if next_step[1] in obstacle_rows[next_step[0]]:
+            obstacle_hit = (*next_step, direction)
 
-            guard_location = (end_spot, guard_location[1])
-        elif direction == Direction.SOUTH:
-            obstacle_location = find_south_obstacle(
-                guard_location, new_obstacle_columns, total_rows
-            )
-            end_spot = obstacle_location - vertical_offset[direction]
+            if obstacle_hit in hit_obstacles:
+                return True
 
-            if obstacle_location == total_rows:
-                return False
-
-            check_obstacle = (obstacle_location, guard_location[1], direction)
-            if check_obstacle in obstacles_hit:
-                return check_obstacle[:2]
-            obstacles_hit.add(check_obstacle)
-
-            guard_location = (end_spot, guard_location[1])
-
-        elif direction == Direction.WEST:
-            obstacle_location = find_west_obstacle(guard_location, new_obstacle_rows)
-            end_spot = obstacle_location - horizontal_offset[direction]
-
-            if obstacle_location == -1:
-                return False
-
-            check_obstacle = (guard_location[0], obstacle_location, direction)
-            if check_obstacle in obstacles_hit:
-                return check_obstacle[:2]
-            obstacles_hit.add(check_obstacle)
-
-            guard_location = (guard_location[0], end_spot)
-        elif direction == Direction.EAST:
-            obstacle_location = find_east_obstacle(
-                guard_location, new_obstacle_rows, total_cols
-            )
-            end_spot = obstacle_location - horizontal_offset[direction]
-
-            if obstacle_location == total_cols:
-                return False
-
-            check_obstacle = (guard_location[0], obstacle_location, direction)
-            if check_obstacle in obstacles_hit:
-                return check_obstacle[:2]
-            obstacles_hit.add(check_obstacle)
-
-            guard_location = (guard_location[0], end_spot)
-
-        direction = rotate_guard(direction)
+            hit_obstacles.add(obstacle_hit)
+            direction = rotate_guard(direction)
+        else:
+            guard_location = next_step
 
 
 @day_6_routes.post("/2")
@@ -288,140 +266,26 @@ async def task_2(task_input: TaskInput):
 
     # this better not get stuck in a loop!
     while True:
-        if direction == Direction.NORTH:
-            obstacle_location = find_north_obstacle(guard_location, obstacle_cols)
-            end_spot = obstacle_location - vertical_offset[direction]
-            for i in range(guard_location[0], end_spot, -1):
-                guard_pos = (i, guard_location[1])
-                check_for_loop_and_add_to_footpath(
+        next_step = next_position(guard_location, direction)
+
+        if out_of_bounds(next_step, total_cols, total_rows):
+            break
+
+        if next_step[1] in obstacle_rows[next_step[0]]:
+            direction = rotate_guard(direction)
+
+        else:
+            if next_step not in footpath:
+                # run simulation
+                if check_for_loop(
+                    (guard_location[0], guard_location[1]),
                     direction,
-                    footpath,
-                    guard_pos,
-                    new_obstacles,
-                    obstacle_cols,
-                    obstacle_rows,
+                    deepcopy(obstacle_rows),
                     total_cols,
                     total_rows,
-                )
-
-            guard_location = (end_spot, guard_location[1])
-
-            if obstacle_location == -1:
-                # we're leaving
-                break
-        elif direction == Direction.SOUTH:
-            obstacle_location = find_south_obstacle(
-                guard_location, obstacle_cols, total_rows
-            )
-            end_spot = obstacle_location - vertical_offset[direction]
-
-            for i in range(guard_location[0], end_spot):
-                guard_pos = (i, guard_location[1])
-                check_for_loop_and_add_to_footpath(
-                    direction,
-                    footpath,
-                    guard_pos,
-                    new_obstacles,
-                    obstacle_cols,
-                    obstacle_rows,
-                    total_cols,
-                    total_rows,
-                )
-
-            guard_location = (end_spot, guard_location[1])
-            if obstacle_location == total_rows:
-                # we're leaving
-                break
-        elif direction == Direction.WEST:
-            obstacle_location = find_west_obstacle(guard_location, obstacle_rows)
-            end_spot = obstacle_location - horizontal_offset[direction]
-
-            for i in range(guard_location[1], end_spot, -1):
-                guard_pos = (guard_location[0], i)
-                check_for_loop_and_add_to_footpath(
-                    direction,
-                    footpath,
-                    guard_pos,
-                    new_obstacles,
-                    obstacle_cols,
-                    obstacle_rows,
-                    total_cols,
-                    total_rows,
-                )
-
-            guard_location = (guard_location[0], end_spot)
-            if obstacle_location == -1:
-                # we're leaving
-                break
-        elif direction == Direction.EAST:
-            obstacle_location = find_east_obstacle(
-                guard_location, obstacle_rows, total_cols
-            )
-            end_spot = obstacle_location - horizontal_offset[direction]
-            for i in range(guard_location[1], end_spot):
-                guard_pos = (guard_location[0], i)
-                check_for_loop_and_add_to_footpath(
-                    direction,
-                    footpath,
-                    guard_pos,
-                    new_obstacles,
-                    obstacle_cols,
-                    obstacle_rows,
-                    total_cols,
-                    total_rows,
-                )
-
-            guard_location = (guard_location[0], end_spot)
-            if obstacle_location == total_cols:
-                # we're leaving
-                break
-        direction = rotate_guard(direction)
+                ):
+                    new_obstacles.add(next_step)
+            footpath.add(guard_location)
+            guard_location = next_step
 
     return {"answer": len(new_obstacles)}
-
-
-def check_for_loop_and_add_to_footpath(
-    direction,
-    footpath,
-    guard_pos,
-    new_obstacles,
-    obstacle_cols,
-    obstacle_rows,
-    total_cols,
-    total_rows,
-):
-    footpath.add(guard_pos)
-    new_obstacle_coords = (
-        guard_pos[0] + vertical_offset[direction],
-        guard_pos[1] + horizontal_offset[direction],
-    )
-    if new_obstacle_coords not in footpath:
-        check_loop(
-            direction,
-            guard_pos,
-            new_obstacles,
-            obstacle_cols,
-            obstacle_rows,
-            total_cols,
-            total_rows,
-        )
-
-
-def check_loop(
-    direction,
-    guard_pos,
-    new_obstacles,
-    obstacle_cols,
-    obstacle_rows,
-    total_cols,
-    total_rows,
-):
-    if obstacle := find_obstacle_if_exists(
-        guard_pos,
-        obstacle_cols,
-        obstacle_rows,
-        total_cols,
-        total_rows,
-        direction,
-    ):
-        new_obstacles.add(obstacle)
