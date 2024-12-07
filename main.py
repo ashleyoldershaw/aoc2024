@@ -6,6 +6,7 @@ from day_3.endpoints import day_3_routes
 from day_4.endpoints import day_4_routes
 from day_5.endpoints import day_5_routes
 from day_6.endpoints import day_6_routes
+from day_7.endpoints import day_7_routes
 
 app = FastAPI()
 # Register the router
@@ -15,3 +16,4 @@ app.include_router(day_3_routes, prefix="/3")
 app.include_router(day_4_routes, prefix="/4")
 app.include_router(day_5_routes, prefix="/5")
 app.include_router(day_6_routes, prefix="/6")
+app.include_router(day_7_routes, prefix="/7")
