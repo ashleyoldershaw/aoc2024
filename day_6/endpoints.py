@@ -1,11 +1,10 @@
 from collections import defaultdict
 from copy import deepcopy
 from enum import Enum
-from typing import Tuple
 
 from fastapi import APIRouter
 
-from aoc_types import TaskInput
+from aoc_types import TaskInput, Coordinates
 
 day_6_routes = APIRouter()
 
@@ -169,9 +168,6 @@ def rotate_guard(direction):
         return Direction.WEST
     if direction == Direction.WEST:
         return Direction.NORTH
-
-
-Coordinates = Tuple[int, int]
 
 
 def next_position(guard_position: Coordinates, direction: Direction) -> Coordinates:
