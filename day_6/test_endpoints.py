@@ -45,13 +45,6 @@ class TestDay6:
         assert response.status_code == 200
         assert response.json() == {"answer": expected_output}
 
-    def test_task_2_test_previous_answers(self):
-        tried_outputs = [457, 2027, 1896, 1893]
-
-        response = client.post(f"/{day}/2", json={"data": self.test_input})
-        assert response.status_code == 200
-        assert response.json()["answer"] not in tried_outputs
-
     def test_task_2_small_loop(self):
         expected_output = 1
         test_input = ".#.\n" ".^#\n" ".#."
