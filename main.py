@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from day_1.endpoints import day_1_routes
 from day_10.endpoints import day_10_routes
+from day_11.endpoints import day_11_routes
 from day_2.endpoints import day_2_routes
 from day_3.endpoints import day_3_routes
 from day_4.endpoints import day_4_routes
@@ -23,3 +24,4 @@ app.include_router(day_7_routes, prefix="/7")
 app.include_router(day_8_routes, prefix="/8")
 app.include_router(day_9_routes, prefix="/9")
 app.include_router(day_10_routes, prefix="/10")
+app.include_router(day_11_routes, prefix="/11")
