@@ -2,7 +2,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
-from day_7.endpoints import concatenate_numbers, format_number_in_base
+from day_7.endpoints import check_for_deconcatenation, deconcatenate_numbers
 from main import app
 from utils import read_file
 
@@ -32,19 +32,34 @@ class TestDay7:
         assert response.status_code == 200
         assert response.json() == {"answer": expected_output}
 
-    def test_number_concatenation(self):
-        expected = 567
-        actual = concatenate_numbers(56, 7)
+    def test_check_for_deconcatenation_true(self):
+        expected = True
+        actual = check_for_deconcatenation(12345, 45)
+
         assert actual == expected
 
-    def test_number_formatting_base_3(self):
-        expected = "010"
-        actual = format_number_in_base(3, 3, 3)
+    def test_check_for_deconcatenation_false(self):
+        expected = False
+        actual = check_for_deconcatenation(12345, 44)
+
         assert actual == expected
 
-    def test_number_formatting_base_3_with_2s(self):
-        expected = "012"
-        actual = format_number_in_base(3, 5, 3)
+    def test_check_for_deconcatenation_too_big(self):
+        expected = False
+        actual = check_for_deconcatenation(12, 123)
+
+        assert actual == expected
+
+    def test_deconcatenation(self):
+        expected = 123
+        actual = deconcatenate_numbers(12345, 45)
+
+        assert actual == expected
+
+    def test_deconcatenation_leaving_0(self):
+        expected = 0
+        actual = deconcatenate_numbers(123, 123)
+
         assert actual == expected
 
     def test_task_2_example(self):
