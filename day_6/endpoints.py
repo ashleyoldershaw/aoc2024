@@ -1,19 +1,12 @@
 from collections import defaultdict
 from copy import deepcopy
-from enum import Enum
 
 from fastapi import APIRouter
 
 from aoc_types import TaskInput, Coordinates
+from utils import Direction, get_next_position
 
 day_6_routes = APIRouter()
-
-
-class Direction(Enum):
-    NORTH = "NORTH"
-    SOUTH = "SOUTH"
-    EAST = "EAST"
-    WEST = "WEST"
 
 
 def get_layout_info(task_input):
@@ -145,20 +138,6 @@ async def task_1(task_input: TaskInput):
     return {"answer": len(footpath)}
 
 
-horizontal_offset = {
-    Direction.NORTH: 0,
-    Direction.EAST: 1,
-    Direction.SOUTH: 0,
-    Direction.WEST: -1,
-}
-vertical_offset = {
-    Direction.NORTH: -1,
-    Direction.EAST: 0,
-    Direction.SOUTH: 1,
-    Direction.WEST: 0,
-}
-
-
 def rotate_guard(direction):
     if direction == Direction.NORTH:
         return Direction.EAST
@@ -168,19 +147,6 @@ def rotate_guard(direction):
         return Direction.WEST
     if direction == Direction.WEST:
         return Direction.NORTH
-
-
-def next_position(guard_position: Coordinates, direction: Direction) -> Coordinates:
-    """
-    Get the location of the guard's next step if she were to go forward
-    :param guard_position: current position of the guard
-    :param direction: the direction the guard is facing
-    :return: the next step in the guard's path
-    """
-    return (
-        guard_position[0] + vertical_offset[direction],
-        guard_position[1] + horizontal_offset[direction],
-    )
 
 
 def out_of_bounds(coordinate: Coordinates, total_cols: int, total_rows: int) -> bool:
@@ -216,13 +182,13 @@ def check_for_loop(
     :return: whether or not there is a loop
     """
 
-    next_step = next_position(guard_location, direction)
+    next_step = get_next_position(guard_location, direction)
     obstacle_rows[next_step[0]].add(next_step[1])
     hit_obstacles = set()
 
     # this better not get stuck in a loop!
     while True:
-        next_step = next_position(guard_location, direction)
+        next_step = get_next_position(guard_location, direction)
 
         if out_of_bounds(next_step, total_cols, total_rows):
             return False
@@ -262,7 +228,7 @@ async def task_2(task_input: TaskInput):
 
     # this better not get stuck in a loop!
     while True:
-        next_step = next_position(guard_location, direction)
+        next_step = get_next_position(guard_location, direction)
 
         if out_of_bounds(next_step, total_cols, total_rows):
             break
