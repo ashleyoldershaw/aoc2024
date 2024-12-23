@@ -8,6 +8,7 @@ from day_13.endpoints import day_13_routes
 from day_14.endpoints import day_14_routes
 from day_15.endpoints import day_15_routes
 from day_16.endpoints import day_16_routes
+from day_17.endpoints import day_17_routes
 from day_2.endpoints import day_2_routes
 from day_3.endpoints import day_3_routes
 from day_4.endpoints import day_4_routes
@@ -35,3 +36,4 @@ app.include_router(day_13_routes, prefix="/13")
 app.include_router(day_14_routes, prefix="/14")
 app.include_router(day_15_routes, prefix="/15")
 app.include_router(day_16_routes, prefix="/16")
+app.include_router(day_17_routes, prefix="/17")
