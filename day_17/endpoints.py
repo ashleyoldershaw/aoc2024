@@ -1,6 +1,5 @@
 import re
 from enum import Enum
-from functools import cache
 from typing import List
 
 from fastapi import APIRouter
@@ -10,7 +9,6 @@ from aoc_types import TaskInput
 day_17_routes = APIRouter()
 
 
-@cache
 def extract_numbers(line) -> List[int]:
     return list(map(int, re.findall(r"-?\d+", line)))
 
@@ -26,7 +24,6 @@ class OpCode(Enum):
     CDV = "CDV"
 
 
-@cache
 def get_opcode(opcode):
     opcode_mapping = {
         0: OpCode.ADV,
