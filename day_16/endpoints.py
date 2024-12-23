@@ -58,19 +58,29 @@ class LocationCosting:
         return self.cost + distance
 
 
-class PuzzleInfo:
+class PathFinderPuzzle:
     def __init__(self, goal):
         self.locations: Dict[(Coordinates, Direction), LocationCosting] = {}
         self.goal = goal
 
-    def get_cheapest_location(self):
+    def estimated_cost(self, location) -> int:
+        return self.locations[location].estimated_cost(self.goal)
+
+    def location_cost(self, location) -> int:
+        return self.locations[location].cost
+
+    def get_cheapest_location(self, method="least_cost"):
+        if method == "estimated_cost":
+            sort_method = self.estimated_cost
+        else:
+            sort_method = self.location_cost
         return min(
             {
                 location
                 for location in self.locations
                 if self.locations[location].explored is False
             },
-            key=lambda location: self.locations[location].estimated_cost(self.goal),
+            key=sort_method,
         )
 
     def add_location(self, location: LocationCosting):
@@ -145,7 +155,7 @@ def get_minimum_cost_paths(task_input: TaskInput) -> List[LocationCosting]:
     # so represent a set of positions, with costings
     # try any possible move, until we get to the end
 
-    puzzle_info = PuzzleInfo(end_position)
+    puzzle_info = PathFinderPuzzle(end_position)
     puzzle_info.locations[(start_position, direction)] = LocationCosting(
         start_position, direction, 0, set()
     )

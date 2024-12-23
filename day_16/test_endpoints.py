@@ -24,17 +24,17 @@ class TestDay16:
         assert response.status_code == 200
         assert response.json() == {"answer": expected_output}
 
-    def test_task_2_example(self):
-        expected_output = 64
-
-        response = client.post(f"/{day}/2", json={"data": self.example_input})
-        assert response.status_code == 200
-        assert response.json() == {"answer": expected_output}
-
     def test_task_1_test(self):
         expected_output = 130536
 
         response = client.post(f"/{day}/1", json={"data": self.test_input})
+        assert response.status_code == 200
+        assert response.json() == {"answer": expected_output}
+
+    def test_task_2_example(self):
+        expected_output = 64
+
+        response = client.post(f"/{day}/2", json={"data": self.example_input})
         assert response.status_code == 200
         assert response.json() == {"answer": expected_output}
 

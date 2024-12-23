@@ -4,7 +4,7 @@ from typing import List
 from fastapi import APIRouter
 
 from day_16.endpoints import (
-    PuzzleInfo,
+    PathFinderPuzzle,
     LocationCosting,
     rotate_clockwise,
     rotate_anticlockwise,
@@ -62,10 +62,10 @@ def get_possible_moves(costing: LocationCosting, maze: List[str], cols, rows):
 
 
 def solve_map(escape_map, task_input):
-    puzzle_info = PuzzleInfo((task_input.rows - 1, task_input.cols - 1))
+    puzzle_info = PathFinderPuzzle((task_input.rows - 1, task_input.cols - 1))
     puzzle_info.add_location(LocationCosting((0, 0), Direction.NORTH, 0, set()))
     while True:
-        location = puzzle_info.get_cheapest_location()
+        location = puzzle_info.get_cheapest_location("estimated_cost")
         location_costing = puzzle_info.locations[location]
         location_costing.explored = True
         if location_costing.coordinate == puzzle_info.goal:
