@@ -3,15 +3,11 @@ from typing import Tuple, List
 
 from fastapi import APIRouter
 
-from aoc_types import TaskInput
 from collections import defaultdict
 
+from utils import TaskInputWithMapDimensions
+
 day_14_routes = APIRouter()
-
-
-class Task14Input(TaskInput):
-    rows: int
-    cols: int
 
 
 def get_button_vector(line: str) -> Tuple[int, int, int, int]:
@@ -39,7 +35,7 @@ def get_quadrant(position, rows, cols):
 
 
 @day_14_routes.post("/1")
-async def task_1(task_input: Task14Input):
+async def task_1(task_input: TaskInputWithMapDimensions):
     seconds_passing = 100
     positions = []
     for line in task_input.data.splitlines():
@@ -92,7 +88,7 @@ def print_map(bots: List[Bot], rows: int, cols: int):
 
 
 @day_14_routes.post("/2")
-async def task_2(task_input: Task14Input):
+async def task_2(task_input: TaskInputWithMapDimensions):
     total = 0
     return {"answer": total}
 

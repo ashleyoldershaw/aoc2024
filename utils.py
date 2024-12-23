@@ -1,7 +1,7 @@
 from enum import Enum
 from pathlib import Path
 
-from aoc_types import Coordinates
+from aoc_types import Coordinates, TaskInput
 
 
 def read_file(file_name: Path):
@@ -53,3 +53,8 @@ def get_next_position(
         current_position[0] + vertical_offset[direction],
         current_position[1] + horizontal_offset[direction],
     )
+
+
+class TaskInputWithMapDimensions(TaskInput):
+    rows: int
+    cols: int

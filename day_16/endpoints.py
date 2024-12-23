@@ -1,4 +1,3 @@
-import math
 from typing import Dict, List, Set
 
 from fastapi import APIRouter
@@ -55,9 +54,7 @@ class LocationCosting:
 
     def estimated_cost(self, goal):
         # TODO implement a goal function for this to make it closer to an A* algorithm than brute force
-        distance = math.sqrt(
-            (goal[0] - self.coordinate[0]) ** 2 + (goal[1] - self.coordinate[1]) ** 2
-        )
+        distance = abs(goal[0] - self.coordinate[0]) + abs(goal[1] - self.coordinate[1])
         return self.cost + distance
 
 
@@ -73,7 +70,7 @@ class PuzzleInfo:
                 for location in self.locations
                 if self.locations[location].explored is False
             },
-            key=lambda location: self.locations[location].cost,
+            key=lambda location: self.locations[location].estimated_cost(self.goal),
         )
 
     def add_location(self, location: LocationCosting):
